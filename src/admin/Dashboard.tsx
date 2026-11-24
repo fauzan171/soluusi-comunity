@@ -26,6 +26,14 @@ const COLOR_CLASS: Record<string, string> = {
   low: "bg-green-100 text-green-800",
   medium: "bg-yellow-100 text-yellow-800",
 };
+// Tanggal ringkas untuk kolom tabel: 24 Nov 18:20
+function shortDate(value: string): string {
+  const m = value.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}:\d{2})/);
+  if (!m) return value;
+  const months = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+  return `${Number(m[3])} ${months[Number(m[2]) - 1]} ${m[4]}`;
+}
+
 const PSS10_LABELS = [
   "Merasa kesal karena sesuatu terjadi secara tak terduga",
   "Merasa tidak mampu mengendalikan hal-hal penting dalam hidup Anda",
@@ -94,8 +102,8 @@ export default function Dashboard({ onLogout }: { onLogout: () => void }) {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3"><Logo className="h-9 w-auto" /><div><h1 className="font-serif text-xl font-bold text-soluusi-ink">Dashboard Wellbeing</h1><p className="text-xs text-soluusi-muted">Community Wellbeing</p></div></div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3"><Logo className="h-9 w-auto" /><div><h1 className="font-serif text-lg font-bold text-soluusi-ink sm:text-xl">Dashboard Wellbeing</h1><p className="text-xs text-soluusi-muted">Community Wellbeing</p></div></div>
         <div className="flex flex-wrap gap-2">
           <a href={`/api/admin/export?${exportQuery()}`}
             className="rounded-lg border border-soluusi-line bg-white px-4 py-2 text-sm font-medium text-soluusi-ink hover:bg-soluusi-surface">
@@ -193,27 +201,30 @@ export default function Dashboard({ onLogout }: { onLogout: () => void }) {
           </div>
         </div>
         <div className="overflow-x-auto rounded-xl bg-white shadow-sm">
-          <table className="w-full text-left text-sm">
+          <table className="w-full text-left text-xs sm:text-sm">
             <thead className="border-b border-soluusi-line text-xs uppercase text-soluusi-muted">
               <tr>
-                <th className="p-3">Waktu</th><th className="p-3">Nama</th><th className="p-3">Usia</th>
-                <th className="p-3">Provinsi</th><th className="p-3">Skor</th><th className="p-3">Keluhan</th><th className="p-3"></th>
+                <th className="whitespace-nowrap p-2 sm:p-3">Tanggal</th><th className="p-2 sm:p-3">Nama</th><th className="p-2 sm:p-3">Usia</th>
+                <th className="p-2 sm:p-3">Provinsi</th><th className="p-2 sm:p-3">Stres</th><th className="p-2 sm:p-3">Keluhan</th><th className="p-2 sm:p-3"></th>
               </tr>
             </thead>
             <tbody>
               {filtered.map(r => (
                 <tr key={r.id} className="border-b border-soluusi-line/60 last:border-0 hover:bg-soluusi-surface">
-                  <td className="p-3 whitespace-nowrap text-soluusi-muted">{r.createdAt}</td>
-                  <td className="p-3 font-medium text-soluusi-ink">{r.name}</td>
-                  <td className="p-3">{r.age}</td>
-                  <td className="p-3 text-soluusi-muted">{r.province ?? '—'}</td>
-                  <td className="p-3">
+                  <td className="whitespace-nowrap p-2 text-soluusi-muted sm:p-3">{shortDate(r.createdAt)}</td>
+                  <td className="p-2 font-medium text-soluusi-ink sm:p-3">{r.name}</td>
+                  <td className="p-2 sm:p-3">{r.age}</td>
+                  <td className="p-2 text-soluusi-muted sm:p-3">{r.province ?? '—'}</td>
+                  <td className="whitespace-nowrap p-2 sm:p-3">
                     {r.score != null
-                      ? <span className={`rounded-full px-2 py-1 text-xs font-semibold ${COLOR_CLASS[r.color!]}`}>{r.score} · {r.label}</span>
-                      : <span className="text-xs text-soluusi-muted/70">belum selesai</span>}
+                      ? <span className={`inline-block rounded-full px-2 py-1 text-xs font-semibold ${COLOR_CLASS[r.color!]}`}>
+                          {r.score}
+                          <span className="hidden sm:inline"> · {r.label}</span>
+                        </span>
+                      : <span className="text-xs text-soluusi-muted/70">belum</span>}
                   </td>
-                  <td className="p-3 max-w-xs truncate text-soluusi-muted">{r.complaintExcerpt}</td>
-                  <td className="p-3 whitespace-nowrap">
+                  <td className="hidden max-w-xs truncate p-2 text-soluusi-muted sm:table-cell sm:p-3">{r.complaintExcerpt}</td>
+                  <td className="whitespace-nowrap p-2 sm:p-3">
                     <button onClick={() => openDetail(r.id)} className="text-sm font-medium text-soluusi-green hover:underline">Detail</button>
                     {" "}
                     <a href={`/api/admin/export?format=pdf&id=${r.id}`}

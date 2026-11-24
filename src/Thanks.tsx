@@ -70,8 +70,8 @@ export default function Thanks({ respondentId, onReset }: { respondentId: number
               }`}>
               <img src={c.photo} alt={c.name} className="h-12 w-12 shrink-0 rounded-full object-cover" />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-soluusi-ink">{c.name}</p>
-                <p className="text-xs text-soluusi-muted">{c.title} · {c.city}</p>
+                <p className="text-sm font-semibold leading-snug text-soluusi-ink">{c.name}</p>
+                <p className="mt-0.5 text-xs text-soluusi-muted">{c.title} · {c.city}</p>
               </div>
               <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
                 selected === c.slug ? "border-soluusi-green bg-soluusi-green" : "border-soluusi-line"
@@ -97,14 +97,14 @@ export default function Thanks({ respondentId, onReset }: { respondentId: number
           <div className="absolute -left-2.5 top-1/2 h-5 w-5 -translate-y-1/2 rounded-full bg-soluusi-surface" />
           <div className="absolute -right-2.5 top-1/2 h-5 w-5 -translate-y-1/2 rounded-full bg-soluusi-surface" />
 
-          <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <div>
               <p className="text-xs text-soluusi-muted">Atas nama</p>
-              <p className="text-sm font-semibold text-soluusi-ink">{name ?? "Peserta"}</p>
+              <p className="text-sm font-semibold leading-snug text-soluusi-ink">{name || "Peserta"}</p>
             </div>
-            <div className="text-right">
+            <div>
               <p className="text-xs text-soluusi-muted">Konsultan</p>
-              <p className="text-sm font-semibold text-soluusi-ink">{consultant.name}</p>
+              <p className="text-sm font-semibold leading-snug text-soluusi-ink">{consultant.name}</p>
             </div>
           </div>
 
