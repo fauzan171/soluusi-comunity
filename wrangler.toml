@@ -1,0 +1,8 @@
+name = "community-wellbeing"
+compatibility_date = "2026-09-01"
+pages_build_output_dir = "dist"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "community-wellbeing-db"
+database_id = "TODO_RUN_wrangler_d1_create"
