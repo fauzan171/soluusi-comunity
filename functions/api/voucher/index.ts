@@ -1,5 +1,6 @@
 import { bad, readJSON } from '../../_lib/api';
 import { authed } from '../admin/auth';
+import { PROMO_CODE } from '../promo';
 
 // Kode voucher: WB-XXXX-XXXX (kriptografis acak, mudah dibaca)
 const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // tanpa I/O/0/1 (ambigu)
@@ -28,7 +29,7 @@ export async function onRequestPost({ env, request }: any) {
   if (respondent.status !== 'completed') return bad('Selesaikan asesmen dulu untuk mendapatkan voucher', 403);
 
   const existing = await env.DB.prepare(
-    'SELECT code, consultant_slug FROM vouchers WHERE respondent_id=?'
+    'SELECT code, consultant_slug, promo_code FROM vouchers WHERE respondent_id=?'
   ).bind(respondentId).first();
 
   if (existing) {
@@ -36,24 +37,54 @@ export async function onRequestPost({ env, request }: any) {
       await env.DB.prepare('UPDATE vouchers SET consultant_slug=? WHERE respondent_id=?')
         .bind(consultantSlug, respondentId).run();
     }
+    const promo = await promoStatus(env, existing.promo_code);
     return Response.json(
-      { code: existing.code, consultantSlug, name: respondent.name },
+      { code: existing.code, consultantSlug, name: respondent.name, promo },
       { headers: { 'Cache-Control': 'no-store' } },
     );
   }
+
+  // Klaim kuota kampanye secara atomik: UPDATE bersyarat (satu statement,
+  // tanpa read-then-write race). changes=0 berarti kuota habis/nonaktif.
+  let promoCode: string | null = null;
+  const claim = await env.DB.prepare(
+    'UPDATE promo_campaigns SET claimed_count = claimed_count + 1 WHERE code=? AND active=1 AND claimed_count < max_claims'
+  ).bind(PROMO_CODE).run();
+  if (claim.meta.changes === 1) promoCode = PROMO_CODE;
 
   for (let attempt = 0; attempt < 5; attempt++) {
     const code = generateVoucherCode();
     try {
       await env.DB.prepare(
-        'INSERT INTO vouchers (code, respondent_id, consultant_slug) VALUES (?,?,?)'
-      ).bind(code, respondentId, consultantSlug).run();
-      return Response.json({ code, consultantSlug, name: respondent.name }, { headers: { 'Cache-Control': 'no-store' } });
+        'INSERT INTO vouchers (code, respondent_id, consultant_slug, promo_code) VALUES (?,?,?,?)'
+      ).bind(code, respondentId, consultantSlug, promoCode).run();
+      const promo = await promoStatus(env, promoCode);
+      return Response.json({ code, consultantSlug, name: respondent.name, promo }, { headers: { 'Cache-Control': 'no-store' } });
     } catch {
       // code collision — coba lagi
     }
   }
+  // Insert gagal total: kembalikan kuota yang sempat diklaim supaya tidak bocor.
+  if (promoCode) {
+    await env.DB.prepare(
+      'UPDATE promo_campaigns SET claimed_count = claimed_count - 1 WHERE code=? AND claimed_count > 0'
+    ).bind(PROMO_CODE).run();
+  }
   return bad('Gagal membuat kode voucher, coba lagi', 500);
+}
+
+async function promoStatus(env: any, promoCode: string | null) {
+  if (!promoCode) return null;
+  const row = await env.DB.prepare(
+    'SELECT code, max_claims, claimed_count, discount_label FROM promo_campaigns WHERE code=?'
+  ).bind(promoCode).first();
+  if (!row) return null;
+  return {
+    code: row.code,
+    discountLabel: row.discount_label,
+    remaining: Math.max(0, row.max_claims - row.claimed_count),
+    soldOut: row.claimed_count >= row.max_claims,
+  };
 }
 
 // GET /api/voucher?id=N — detail voucher (admin atau pemilik via id)

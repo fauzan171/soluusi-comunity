@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import Logo from "./Logo";
 import { CONSULTANTS } from "./data/consultants";
 
-type Voucher = { code: string; consultantSlug: string; name?: string };
+type Promo = { code: string; discountLabel: string; remaining: number; soldOut: boolean } | null;
+type Voucher = { code: string; consultantSlug: string; name?: string; promo?: Promo };
 
 export default function Thanks({ respondentId, onReset }: { respondentId: number; onReset: () => void }) {
   const [selected, setSelected] = useState<string>(CONSULTANTS[0].slug);
@@ -83,52 +84,94 @@ export default function Thanks({ respondentId, onReset }: { respondentId: number
         </div>
       </div>
 
-      {/* Voucher */}
-      <div className="mt-5 overflow-hidden rounded-2xl border border-soluusi-green/20 bg-white shadow-lg">
-        <div className="flex items-center justify-between bg-soluusi-green px-5 py-3.5">
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-white/70">Voucher konsultasi</p>
-            <p className="text-base font-bold text-white">Potongan Rp 50.000</p>
+      {/* Tiket promo — desain bertakik dengan sobekan */}
+      <div className="relative mt-6">
+        {/* glow */}
+        <div className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-soluusi-green via-emerald-400 to-soluusi-orange opacity-20 blur-lg" aria-hidden />
+
+        <div className="relative overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-black/5">
+          {/* Header tiket */}
+          <div className="relative overflow-hidden bg-gradient-to-br from-soluusi-green-dark via-soluusi-green to-emerald-600 px-5 py-5 text-white">
+            <div className="absolute -right-8 -top-10 h-32 w-32 rounded-full bg-white/10" aria-hidden />
+            <div className="absolute -bottom-14 right-12 h-28 w-28 rounded-full bg-white/5" aria-hidden />
+
+            <div className="relative flex items-start justify-between gap-3">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/60">Tiket promo</p>
+                <p className="mt-1 font-serif text-2xl font-bold leading-tight">
+                  {voucher?.promo?.discountLabel ?? "Rp 50.000"}
+                  <span className="ml-1.5 text-sm font-medium text-white/80">diskon</span>
+                </p>
+                <p className="mt-1 text-xs text-white/70">Konsultasi Mental Health · Soluusi × Gerakan Binar</p>
+              </div>
+              <img src="/brand/gerakan-binar.png" alt="" className="h-11 w-11 shrink-0 object-contain drop-shadow" />
+            </div>
           </div>
-          <img src="/brand/gerakan-binar.png" alt="" className="h-9 w-9 object-contain opacity-90" />
-        </div>
 
-        <div className="relative px-5 py-5">
-          <div className="absolute -left-2.5 top-1/2 h-5 w-5 -translate-y-1/2 rounded-full bg-soluusi-surface" />
-          <div className="absolute -right-2.5 top-1/2 h-5 w-5 -translate-y-1/2 rounded-full bg-soluusi-surface" />
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <p className="text-xs text-soluusi-muted">Atas nama</p>
-              <p className="text-sm font-semibold leading-snug text-soluusi-ink">{name || "Peserta"}</p>
-            </div>
-            <div>
-              <p className="text-xs text-soluusi-muted">Konsultan</p>
-              <p className="text-sm font-semibold leading-snug text-soluusi-ink">{consultant.name}</p>
-            </div>
+          {/* Sobekan: garis perforasi + takik kiri/kanan */}
+          <div className="relative h-0">
+            <div className="absolute left-4 right-4 top-0 border-t-2 border-dashed border-soluusi-line" />
+            <div className="absolute -left-3 -top-3 h-6 w-6 rounded-full bg-soluusi-surface ring-1 ring-black/5" />
+            <div className="absolute -right-3 -top-3 h-6 w-6 rounded-full bg-soluusi-surface ring-1 ring-black/5" />
           </div>
 
-          <div className="my-4 border-t border-dashed border-soluusi-line" />
-
-          <p className="text-xs text-soluusi-muted">Kode voucher</p>
-          {loading && <p className="mt-1 text-sm text-soluusi-muted">Menyiapkan kode…</p>}
-          {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
-          {voucher && !loading && (
-            <div className="mt-1.5 flex flex-wrap items-center gap-3">
-              <code className="rounded-lg border-2 border-dashed border-soluusi-green bg-soluusi-green-light px-4 py-2 font-mono text-lg font-bold tracking-wider text-soluusi-green-dark">
-                {voucher.code}
-              </code>
-              <button type="button"
-                onClick={() => navigator.clipboard?.writeText(voucher.code)}
-                className="rounded-lg border border-soluusi-line px-3 py-2 text-xs font-semibold text-soluusi-ink hover:bg-soluusi-surface">
-                Salin
-              </button>
+          {/* Body tiket */}
+          <div className="px-5 pb-5 pt-6">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-soluusi-muted">Atas nama</p>
+                <p className="mt-0.5 text-sm font-semibold leading-snug text-soluusi-ink">{name || "Peserta"}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-soluusi-muted">Konsultan</p>
+                <p className="mt-0.5 text-sm font-semibold leading-snug text-soluusi-ink">{consultant.name}</p>
+              </div>
             </div>
-          )}
 
-          <p className="mt-4 text-xs leading-relaxed text-soluusi-muted">
-            Tukarkan kode ini saat checkout di Soluusi. Berlaku 30 hari sejak diterbitkan.
-          </p>
+            <div className="mt-4">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-soluusi-muted">Kode voucher</p>
+
+              {loading && (
+                <div className="mt-1.5 h-12 w-48 animate-pulse rounded-lg bg-soluusi-surface" />
+              )}
+              {error && <p className="mt-1.5 text-sm text-red-600">{error}</p>}
+
+              {voucher && !loading && (
+                <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                  <code className="rounded-xl border-2 border-dashed border-soluusi-green bg-soluusi-green-light px-4 py-2.5 font-mono text-lg font-bold tracking-[0.15em] text-soluusi-green-dark">
+                    {voucher.code}
+                  </code>
+                  <button type="button"
+                    onClick={() => navigator.clipboard?.writeText(voucher.code)}
+                    className="rounded-xl border border-soluusi-line bg-white px-3.5 py-2.5 text-xs font-semibold text-soluusi-ink transition hover:border-soluusi-green hover:bg-soluusi-green-light active:scale-95">
+                    Salin
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Sisa kuota */}
+            {voucher?.promo && !voucher.promo.soldOut && (
+              <div className="mt-4 rounded-xl bg-soluusi-orange/10 px-3.5 py-2.5">
+                <div className="flex items-center justify-between gap-2 text-xs">
+                  <span className="font-semibold text-soluusi-ink">
+                    Kode <span className="font-mono text-soluusi-orange">{voucher.promo.code}</span>
+                  </span>
+                  <span className="font-semibold text-soluusi-orange">
+                    Sisa {voucher.promo.remaining} klaim
+                  </span>
+                </div>
+                <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white">
+                  <div className="h-full rounded-full bg-soluusi-orange transition-all"
+                    style={{ width: `${Math.min(100, (voucher.promo.remaining / 200) * 100)}%` }} />
+                </div>
+              </div>
+            )}
+
+            <p className="mt-4 text-xs leading-relaxed text-soluusi-muted">
+              Tukarkan kode ini saat checkout di Soluusi. Berlaku 30 hari sejak diterbitkan.
+            </p>
+          </div>
         </div>
       </div>
 

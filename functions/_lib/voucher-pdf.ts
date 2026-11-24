@@ -10,6 +10,8 @@ export type VoucherInput = {
   consultantCity: string;
   consultantUrl: string;
   issuedAt: string;
+  promoCode?: string | null;
+  promoRemaining?: number | null;
 };
 
 const W = 720, H = 420, M = 40;
@@ -93,7 +95,7 @@ export async function buildVoucherPdf(v: VoucherInput): Promise<Uint8Array> {
 
   // Voucher code (dashed ticket)
   y -= boxH + 18;
-  page.drawText('KODE VOUCHER', { x: M, y, font: bold, size: 7, color: MUTED });
+  page.drawText(v.promoCode ? 'KODE VOUCHER (PROMO TERBATAS)' : 'KODE VOUCHER', { x: M, y, font: bold, size: 7, color: MUTED });
   y -= 6;
   const codeY = y - 30;
   page.drawRectangle({ x: M, y: codeY, width: 232, height: 34, color: rgb(0.90, 0.95, 0.93), borderColor: BRAND, borderWidth: 1.5, borderDashArray: [5, 3] });
@@ -112,6 +114,19 @@ export async function buildVoucherPdf(v: VoucherInput): Promise<Uint8Array> {
   for (const step of steps) {
     ry -= 13;
     page.drawText(ascii(step), { x: rx, y: ry, font: regular, size: 8, color: INK });
+  }
+
+  // Promo badge kanan bawah
+  if (v.promoCode) {
+    const px = W - M - 150;
+    let py = y - 6;
+    page.drawText('KODE PROMO', { x: px, y: py, font: bold, size: 7, color: ORANGE });
+    py -= 15;
+    page.drawText(ascii(v.promoCode), { x: px, y: py, font: mono, size: 11, color: INK });
+    if (typeof v.promoRemaining === 'number') {
+      py -= 12;
+      page.drawText(ascii(`Sisa ${v.promoRemaining} klaim`), { x: px, y: py, font: regular, size: 7.5, color: MUTED });
+    }
   }
 
   // Footer
