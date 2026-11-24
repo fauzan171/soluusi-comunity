@@ -1,21 +1,28 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from 'pdf-lib';
 
-// PDF laporan wellbeing — pattern pdf-report TVS, disederhanakan untuk 1 instrumen WHO-5.
+// PDF laporan wellbeing — pattern pdf-report TVS, 1 instrumen PSS-10.
 export type ReportRespondent = {
   id: number; name: string; email: string; phone: string; domicile: string; birth_date: string;
   age: number; gender: string; complaint: string; status: string; created_at: string;
+  province?: string | null;
   q1: number | null; q2: number | null; q3: number | null; q4: number | null; q5: number | null;
+  q6?: number | null; q7?: number | null; q8?: number | null; q9?: number | null; q10?: number | null;
   score: number | null; label: string | null;
 };
 
 const QUESTIONS = [
-  'Saya merasa ceria dan bersemangat',
-  'Saya merasa tenang dan santai',
-  'Saya merasa aktif dan penuh energi',
-  'Saya bangun tidur dengan perasaan segar dan cukup beristirahat',
-  'Hidup saya penuh hal-hal yang menarik',
+  'Merasa kesal karena sesuatu terjadi secara tak terduga',
+  'Merasa tidak mampu mengendalikan hal-hal penting dalam hidup Anda',
+  'Merasa gugup dan stres',
+  'Merasa percaya diri terhadap kemampuan Anda dalam menangani masalah pribadi',
+  'Merasa bahwa segala sesuatunya berjalan sesuai dengan keinginan Anda',
+  'Merasa tidak mampu mengatasi semua hal yang harus Anda lakukan',
+  'Mampu mengendalikan hal-hal yang membuat Anda jengkel dalam hidup',
+  'Merasa mampu mengendalikan keadaan',
+  'Merasa marah karena hal-hal yang terjadi di luar kendali Anda',
+  'Merasa kesulitan menumpuk begitu tinggi hingga Anda tidak dapat mengatasinya',
 ];
-const SCALE = ['Tidak pernah', 'Sangat jarang', 'Jarang', 'Kadang-kadang', 'Sering', 'Selalu'];
+const SCALE = ['Tidak pernah', 'Hampir tidak pernah', 'Kadang-kadang', 'Cukup sering', 'Sangat sering'];
 
 const PAGE = { width: 595.28, height: 841.89, margin: 44 };
 const COLORS = {
@@ -24,7 +31,7 @@ const COLORS = {
   green: rgb(0.13, 0.55, 0.32), yellow: rgb(0.78, 0.53, 0.06), orange: rgb(0.9, 0.45, 0.05), red: rgb(0.78, 0.2, 0.18),
 };
 const LABEL_COLOR: Record<string, 'green' | 'yellow' | 'orange' | 'red'> = {
-  'Baik': 'green', 'Sedang': 'yellow', 'Buruk': 'orange', 'Indikasi depresi': 'red',
+  'Stres rendah': 'green', 'Stres sedang': 'yellow', 'Stres tinggi': 'red',
 };
 
 function safeText(value: unknown) {
@@ -71,11 +78,11 @@ export async function buildWellbeingPdf(respondents: ReportRespondent[], scopeLa
     for (const line of lines.slice(0, 2)) { page.drawText(line, { x, y: ly, font: regular, size: 8.5, color: COLORS.ink }); ly -= 11; }
   }
 
-  addPage('Laporan self-assessment WHO-5');
+  addPage('Laporan self-assessment PSS-10');
   y -= 28;
   text('LAPORAN SELF-ASSESSMENT', PAGE.margin, 10, COLORS.teal, bold);
   y -= 10;
-  text('WHO-5 Well-Being Index', PAGE.margin, 28, COLORS.ink, bold);
+  text('PSS-10 Perceived Stress Scale', PAGE.margin, 28, COLORS.ink, bold);
   y -= 8;
   text(scopeLabel, PAGE.margin, 13, COLORS.muted, regular);
   y -= 26;
@@ -86,7 +93,7 @@ export async function buildWellbeingPdf(respondents: ReportRespondent[], scopeLa
   page.drawText('DIBUAT PADA', { x: PAGE.margin + 185, y: coverY, font: bold, size: 7, color: COLORS.muted });
   page.drawText(new Date().toLocaleString('id-ID'), { x: PAGE.margin + 185, y: coverY - 23, font: regular, size: 9, color: COLORS.ink });
   y -= 108;
-  text('Dokumen ini memuat data diri, keluhan, dan jawaban WHO-5 responden. Kategori skor adalah kategori operasional untuk prioritas tindak lanjut, bukan diagnosis klinis.', PAGE.margin, 9, COLORS.muted, regular);
+  text('Dokumen ini memuat data diri, keluhan, dan jawaban PSS-10 responden. Kategori skor adalah kategori operasional untuk prioritas tindak lanjut, bukan diagnosis klinis.', PAGE.margin, 9, COLORS.muted, regular);
 
   for (let i = 0; i < respondents.length; i++) {
     const r = respondents[i];
@@ -98,13 +105,13 @@ export async function buildWellbeingPdf(respondents: ReportRespondent[], scopeLa
     labelValue('Email', r.email, PAGE.margin, col - 18);
     labelValue('Telepon', r.phone, PAGE.margin + col, col - 18);
     y = infoY - 42;
-    labelValue('Domisili', r.domicile, PAGE.margin, col - 18);
+    labelValue('Domisili', `${r.domicile}${r.province ? ', ' + r.province : ''}`, PAGE.margin, col - 18);
     labelValue('Jenis kelamin', r.gender === 'L' ? 'Laki-laki' : 'Perempuan', PAGE.margin + col, col - 18);
     y -= 48;
 
     page.drawRectangle({ x: PAGE.margin, y: y - 50, width: PAGE.width - PAGE.margin * 2, height: 50, color: COLORS.paper, borderColor: COLORS.line, borderWidth: 1 });
-    page.drawText('HASIL WHO-5', { x: PAGE.margin + 15, y: y - 17, font: bold, size: 7, color: COLORS.muted });
-    const status = r.status === 'completed' && r.score != null ? `${r.score}/100` : 'BELUM SELESAI';
+    page.drawText('HASIL PSS-10', { x: PAGE.margin + 15, y: y - 17, font: bold, size: 7, color: COLORS.muted });
+    const status = r.status === 'completed' && r.score != null ? `${r.score}/40` : 'BELUM SELESAI';
     const colorKey = r.label ? LABEL_COLOR[r.label] : undefined;
     page.drawText(status, { x: PAGE.margin + 15, y: y - 36, font: bold, size: 13, color: colorKey ? COLORS[colorKey] : COLORS.muted });
     if (r.label) page.drawText(r.label, { x: PAGE.margin + 290, y: y - 31, font: bold, size: 9, color: colorKey ? COLORS[colorKey] : COLORS.ink });
@@ -115,9 +122,9 @@ export async function buildWellbeingPdf(respondents: ReportRespondent[], scopeLa
     text(r.complaint, PAGE.margin, 8.5, COLORS.ink, regular);
     y -= 12;
 
-    text('JAWABAN WHO-5', PAGE.margin, 7, COLORS.teal, bold);
+    text('JAWABAN PSS-10', PAGE.margin, 7, COLORS.teal, bold);
     y -= 4;
-    for (let q = 0; q < 5; q++) {
+    for (let q = 0; q < 10; q++) {
       const value = (r as any)[`q${q + 1}`];
       const qLines = wrap(QUESTIONS[q], regular, 7.6, PAGE.width - PAGE.margin * 2 - 20);
       const aText = value == null ? '-' : `${value} - ${SCALE[value]}`;
@@ -139,7 +146,7 @@ export async function buildWellbeingPdf(respondents: ReportRespondent[], scopeLa
     item.drawLine({ start: { x: PAGE.margin, y: 34 }, end: { x: PAGE.width - PAGE.margin, y: 34 }, thickness: .5, color: COLORS.line });
     item.drawText(`Rahasia - Data kesejahteraan | Halaman ${index + 1} dari ${pages.length}`, { x: PAGE.margin, y: 20, font: regular, size: 6.8, color: COLORS.muted });
   });
-  doc.setTitle('Laporan WHO-5 Community Wellbeing');
+  doc.setTitle('Laporan PSS-10 Community Wellbeing');
   doc.setCreationDate(new Date());
   return doc.save();
 }

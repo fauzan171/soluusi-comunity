@@ -1,5 +1,5 @@
 import { bad } from '../../_lib/api';
-import { who5Summary, WHO5_QUESTIONS } from '../../_lib/scoring';
+import { pss10Summary, PSS10_QUESTIONS } from '../../_lib/scoring';
 import { buildWellbeingPdf, safeFilename, type ReportRespondent } from '../../_lib/report';
 import { buildWellbeingWorkbook } from '../../_lib/excel';
 import { authed } from './auth';
@@ -27,8 +27,8 @@ export async function onRequestGet({ env, request }: any) {
 
   const respondents: ReportRespondent[] = [];
   for (const r of rows ?? []) {
-    const s = r.status === 'completed' ? who5Summary(r) : null;
-    if (category && s?.category !== category) continue;
+    const s = r.status === 'completed' ? pss10Summary([r.q1,r.q2,r.q3,r.q4,r.q5,r.q6,r.q7,r.q8,r.q9,r.q10]) : null;
+    if (category && s?.color !== category) continue;
     if (domicile && r.domicile !== domicile) continue;
     if (from && r.created_at < from) continue;
     if (to && r.created_at > `${to} 23:59:59`) continue;
@@ -38,13 +38,13 @@ export async function onRequestGet({ env, request }: any) {
   const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
 
   if (format === 'csv') {
-    const header = ['ID', 'Waktu Submit', 'Status', 'Nama', 'Email', 'Telepon', 'Domisili',
+    const header = ['ID', 'Waktu Submit', 'Status', 'Nama', 'Email', 'Telepon', 'Provinsi', 'Kota/Kabupaten',
       'Tanggal Lahir', 'Usia', 'Jenis Kelamin', 'Keluhan',
-      ...WHO5_QUESTIONS, 'Skor WHO-5', 'Kategori'];
+      ...PSS10_QUESTIONS.map(q => q.text), 'Skor PSS-10 (0-40)', 'Kategori'];
     const data = respondents.map(r => [
       r.id, r.created_at, r.status === 'completed' ? 'Selesai' : 'Form saja', r.name, r.email, r.phone,
-      r.domicile, r.birth_date, r.age, r.gender === 'L' ? 'Laki-laki' : 'Perempuan', r.complaint,
-      r.q1 ?? '', r.q2 ?? '', r.q3 ?? '', r.q4 ?? '', r.q5 ?? '',
+      r.province ?? '', r.domicile, r.birth_date, r.age, r.gender === 'L' ? 'Laki-laki' : 'Perempuan', r.complaint,
+      r.q1 ?? '', r.q2 ?? '', r.q3 ?? '', r.q4 ?? '', r.q5 ?? '', r.q6 ?? '', r.q7 ?? '', r.q8 ?? '', r.q9 ?? '', r.q10 ?? '',
       r.score ?? '', r.label ?? '',
     ]);
     const csv = [header, ...data]

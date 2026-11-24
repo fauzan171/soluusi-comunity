@@ -5,13 +5,14 @@ type Summary = {
   totalRespondents: number; completed: number; registeredOnly: number; dropOffRate: number;
   averageScore: number | null;
   categories: Record<string, number>;
+  provinces: Record<string, number>;
   domiciles: Record<string, number>;
   genders: Record<string, number>;
   questionAverages: (number | null)[];
 };
 type Respondent = {
   id: number; createdAt: string; status: string; name: string; age: number;
-  domicile: string; gender: string; complaintExcerpt: string;
+  province: string | null; domicile: string; gender: string; complaintExcerpt: string;
   score: number | null; label: string | null; color: string | null; category: string | null;
 };
 type Detail = {
@@ -21,8 +22,9 @@ type Detail = {
 const COLOR_CLASS: Record<string, string> = {
   green: "bg-green-100 text-green-800",
   yellow: "bg-yellow-100 text-yellow-800",
-  orange: "bg-orange-100 text-orange-800",
-  red: "bg-red-100 text-red-800",
+  high: "bg-red-100 text-red-800",
+  low: "bg-green-100 text-green-800",
+  medium: "bg-yellow-100 text-yellow-800",
 };
 const WHO5_LABELS = [
   "Saya merasa ceria dan bersemangat",
@@ -58,6 +60,14 @@ export default function Dashboard({ onLogout }: { onLogout: () => void }) {
   async function openDetail(id: number) {
     const r = await fetch(`/api/admin/respondents?id=${id}`).then(r => r.json() as Promise<Detail>);
     setDetail(r);
+  }
+
+  async function removeRespondent(id: number, name: string) {
+    if (!confirm(`Hapus data responden "${name}"? Tindakan ini permanen.`)) return;
+    const res = await fetch(`/api/admin/respondents?id=${id}`, { method: "DELETE" });
+    if (!res.ok) { alert("Gagal menghapus data"); return; }
+    setDetail(null);
+    load();
   }
 
   if (!summary || !respondents) return <p className="text-soluusi-muted">Memuat…</p>;
@@ -103,7 +113,7 @@ export default function Dashboard({ onLogout }: { onLogout: () => void }) {
 
       <section className="grid grid-cols-2 gap-4 sm:grid-cols-5">
         <Stat label="Total Responden" value={summary.totalRespondents} />
-        <Stat label="Selesai WHO-5" value={summary.completed} />
+        <Stat label="Selesai Asesmen" value={summary.completed} />
         <Stat label="Form Saja" value={summary.registeredOnly} />
         <Stat label="Drop-off" value={`${summary.dropOffRate}%`} />
         <Stat label="Rata-rata Skor" value={summary.averageScore ?? "—"} />
@@ -116,7 +126,7 @@ export default function Dashboard({ onLogout }: { onLogout: () => void }) {
             <div key={key} className="flex items-center gap-3">
               <span className="w-40 text-sm text-soluusi-ink">{label}</span>
               <div className="h-4 flex-1 rounded bg-soluusi-surface">
-                <div className={`h-4 rounded ${key === "good" ? "bg-green-500" : key === "fair" ? "bg-yellow-500" : key === "poor" ? "bg-orange-500" : "bg-red-500"}`}
+                <div className={`h-4 rounded ${key === "low" ? "bg-green-500" : key === "medium" ? "bg-yellow-500" : "bg-red-500"}`}
                   style={{ width: `${summary.completed ? (summary.categories[key] / summary.completed) * 100 : 0}%` }} />
               </div>
               <span className="w-8 text-right text-sm font-semibold text-soluusi-ink">{summary.categories[key]}</span>
@@ -127,14 +137,14 @@ export default function Dashboard({ onLogout }: { onLogout: () => void }) {
 
       {summary.questionAverages.some(v => v != null) && (
         <section className="rounded-xl bg-white p-5 shadow-sm">
-          <h2 className="text-sm font-semibold text-soluusi-muted">Rata-rata Jawaban per Pertanyaan (responden selesai)</h2>
+          <h2 className="text-sm font-semibold text-soluusi-muted">Rata-rata Jawaban per Pertanyaan PSS-10 (responden selesai)</h2>
           <ol className="mt-3 space-y-2">
             {WHO5_LABELS.map((q, i) => (
               <li key={i} className="flex items-center gap-3">
                 <span className="w-56 shrink-0 truncate text-sm text-soluusi-ink" title={q}>{q}</span>
                 <div className="h-4 flex-1 rounded bg-soluusi-surface">
                   <div className="h-4 rounded bg-soluusi-green"
-                    style={{ width: `${(summary.questionAverages[i] ?? 0) / 5 * 100}%` }} />
+                    style={{ width: `${(summary.questionAverages[i] ?? 0) / 4 * 100}%` }} />
                 </div>
                 <span className="w-10 text-right text-sm font-semibold text-soluusi-ink">{summary.questionAverages[i] ?? "—"}</span>
               </li>
@@ -182,7 +192,7 @@ export default function Dashboard({ onLogout }: { onLogout: () => void }) {
             <thead className="border-b border-soluusi-line text-xs uppercase text-soluusi-muted">
               <tr>
                 <th className="p-3">Waktu</th><th className="p-3">Nama</th><th className="p-3">Usia</th>
-                <th className="p-3">Domisili</th><th className="p-3">Skor</th><th className="p-3">Keluhan</th><th className="p-3"></th>
+                <th className="p-3">Provinsi</th><th className="p-3">Skor</th><th className="p-3">Keluhan</th><th className="p-3"></th>
               </tr>
             </thead>
             <tbody>
@@ -191,7 +201,7 @@ export default function Dashboard({ onLogout }: { onLogout: () => void }) {
                   <td className="p-3 whitespace-nowrap text-soluusi-muted">{r.createdAt}</td>
                   <td className="p-3 font-medium text-soluusi-ink">{r.name}</td>
                   <td className="p-3">{r.age}</td>
-                  <td className="p-3 text-soluusi-muted">{r.domicile}</td>
+                  <td className="p-3 text-soluusi-muted">{r.province ?? '—'}</td>
                   <td className="p-3">
                     {r.score != null
                       ? <span className={`rounded-full px-2 py-1 text-xs font-semibold ${COLOR_CLASS[r.color!]}`}>{r.score} · {r.label}</span>
@@ -203,6 +213,9 @@ export default function Dashboard({ onLogout }: { onLogout: () => void }) {
                     {" "}
                     <a href={`/api/admin/export?format=pdf&id=${r.id}`}
                       className="text-sm font-medium text-soluusi-green hover:underline">PDF</a>
+                    {" "}
+                    <button onClick={() => removeRespondent(r.id, r.name)}
+                      className="text-sm font-medium text-red-600 hover:underline">Hapus</button>
                   </td>
                 </tr>
               ))}
@@ -225,14 +238,15 @@ export default function Dashboard({ onLogout }: { onLogout: () => void }) {
               <Row k="Waktu Submit" v={detail.respondent.created_at} />
               <Row k="Email" v={detail.respondent.email} />
               <Row k="Telepon" v={detail.respondent.phone} />
-              <Row k="Domisili" v={detail.respondent.domicile} />
+              <Row k="Provinsi" v={detail.respondent.province ?? "—"} />
+              <Row k="Kota/Kabupaten" v={detail.respondent.domicile} />
               <Row k="Tanggal Lahir" v={detail.respondent.birth_date} />
               <Row k="Usia" v={`${detail.respondent.age} tahun`} />
               <Row k="Jenis Kelamin" v={detail.respondent.gender === "L" ? "Laki-laki" : "Perempuan"} />
               <Row k="Status" v={detail.respondent.status === "completed" ? "Selesai" : "Form saja"} />
               {detail.summary && (
                 <div className="pt-2">
-                  <Row k="Skor WHO-5" v={`${detail.summary.score}/100 · ${detail.summary.label}`} />
+                  <Row k="Skor PSS-10" v={`${detail.summary.score}/40 · ${detail.summary.label}`} />
                 </div>
               )}
             </dl>
@@ -250,7 +264,11 @@ export default function Dashboard({ onLogout }: { onLogout: () => void }) {
                 </a>
               </div>
             )}
-            <h4 className="mt-4 text-sm font-semibold text-soluusi-ink">Jawaban WHO-5</h4>
+            <button onClick={() => removeRespondent(detail.respondent.id, detail.respondent.name)}
+              className="mt-3 w-full rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100">
+              Hapus Data Responden Ini
+            </button>
+            <h4 className="mt-4 text-sm font-semibold text-soluusi-ink">Jawaban PSS-10</h4>
             {detail.respondent.status === "completed" ? (
               <ol className="mt-2 space-y-2 text-sm">
                 {WHO5_LABELS.map((q, i) => (

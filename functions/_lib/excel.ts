@@ -3,16 +3,15 @@ import type { ReportRespondent } from './report';
 
 // Excel laporan wellbeing — baris diberi warna sesuai kategori skor (pattern MHI TVS).
 const QUESTIONS = [
-  'Saya merasa ceria dan bersemangat',
-  'Saya merasa tenang dan santai',
-  'Saya merasa aktif dan penuh energi',
-  'Saya bangun tidur dengan perasaan segar dan cukup beristirahat',
-  'Hidup saya penuh hal-hal yang menarik',
+  'Q5 Merasa kesal', 'Q6 Tidak mampu mengendalikan hal penting', 'Q7 Gugup dan stres',
+  'Q8 Percaya diri (R)', 'Q9 Sesuai keinginan (R)', 'Q10 Tidak mampu mengatasi',
+  'Q11 Mampu mengendalikan jengkel (R)', 'Q12 Mampu mengendalikan keadaan (R)',
+  'Q13 Marah di luar kendali', 'Q14 Kesulitan menumpuk',
 ];
-const SCALE = ['Tidak pernah', 'Sangat jarang', 'Jarang', 'Kadang-kadang', 'Sering', 'Selalu'];
+const SCALE = ['Tidak pernah', 'Hampir tidak pernah', 'Kadang-kadang', 'Cukup sering', 'Sangat sering'];
 
 const CATEGORY_FILL: Record<string, string> = {
-  'Baik': 'C6EFCE', 'Sedang': 'FFEB9C', 'Buruk': 'FFD8A8', 'Indikasi depresi': 'FFC7CE',
+  'Stres rendah': 'C6EFCE', 'Stres sedang': 'FFEB9C', 'Stres tinggi': 'FFC7CE',
 };
 const HEADER_FILL = { pattern: 'solid', fgColor: { rgb: '0A302B' } };
 
@@ -24,13 +23,13 @@ export function buildWellbeingWorkbook(respondents: ReportRespondent[], opts: { 
   const wb = XLSX.utils.book_new();
 
   // Sheet 1: Ringkasan
-  const header = ['ID', 'Waktu Submit', 'Status', 'Nama', 'Email', 'Telepon', 'Domisili',
+  const header = ['ID', 'Waktu Submit', 'Status', 'Nama', 'Email', 'Telepon', 'Provinsi', 'Kota/Kabupaten',
     'Tanggal Lahir', 'Usia', 'Jenis Kelamin', 'Keluhan',
-    ...QUESTIONS, 'Skor WHO-5', 'Kategori'];
+    ...QUESTIONS, 'Skor PSS-10 (0-40)', 'Kategori'];
   const rows = respondents.map(r => [
     r.id, r.created_at, r.status === 'completed' ? 'Selesai' : 'Form saja', r.name, r.email, r.phone,
-    r.domicile, r.birth_date, r.age, r.gender === 'L' ? 'Laki-laki' : 'Perempuan', r.complaint,
-    ...[1, 2, 3, 4, 5].map(i => (r as any)[`q${i}`] == null ? '' : `${(r as any)[`q${i}`]} - ${SCALE[(r as any)[`q${i}`]]}`),
+    r.province ?? '', r.domicile, r.birth_date, r.age, r.gender === 'L' ? 'Laki-laki' : 'Perempuan', r.complaint,
+    ...Array.from({length:10},(_,i)=>i+1).map(i => (r as any)[`q${i}`] == null ? '' : `${(r as any)[`q${i}`]} - ${SCALE[(r as any)[`q${i}`]]}`),
     r.score ?? '', r.label ?? '',
   ]);
   const ws = XLSX.utils.aoa_to_sheet([header, ...rows]);
@@ -51,13 +50,13 @@ export function buildWellbeingWorkbook(respondents: ReportRespondent[], opts: { 
 
   // Sheet 2: Metodologi
   const meta: string[][] = [
-    ['METODOLOGI WHO-5 WELL-BEING INDEX'],
+    ['METODOLOGI PSS-10 (PERCEIVED STRESS SCALE)'],
     [],
-    ['Instrumen', 'WHO-5 Well-Being Index (5 item, public domain WHO)'],
-    ['Periode pengukuran', 'Selama 2 minggu terakhir'],
-    ['Skala jawaban', '0 = Tidak pernah s.d. 5 = Selalu'],
-    ['Perhitungan skor', 'Skor = (jumlah 5 jawaban) x 4, rentang 0-100'],
-    ['Kategori', '>=68 Baik (hijau), 51-67 Sedang (kuning), 29-50 Buruk (oranye), <=28 Indikasi depresi (merah)'],
+    ['Instrumen', 'PSS-10 Perceived Stress Scale (10 item)'],
+    ['Periode pengukuran', 'Dalam satu bulan terakhir'],
+    ['Skala jawaban', '0 = Tidak pernah s.d. 4 = Sangat sering'],
+    ['Perhitungan skor', '4 item reverse (Q8,Q9,Q11,Q12): skor = 4 - jawaban. Total 10 item = 0-40'],
+    ['Kategori', '0-13 Stres rendah (hijau), 14-26 Stres sedang (kuning), 27-40 Stres tinggi (merah)'],
     ['Interpretasi', 'Kategori operasional untuk prioritas tindak lanjut, bukan diagnosis klinis'],
     ['Dibuat pada', new Date().toISOString()],
   ];

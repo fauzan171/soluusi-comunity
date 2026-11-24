@@ -1,22 +1,28 @@
 import { useEffect, useState } from "react";
 
 const QUESTIONS = [
-  "Saya merasa ceria dan bersemangat",
-  "Saya merasa tenang dan santai",
-  "Saya merasa aktif dan penuh energi",
-  "Saya bangun tidur dengan perasaan segar dan cukup beristirahat",
-  "Hidup saya penuh hal-hal yang menarik",
+  "Merasa kesal karena sesuatu terjadi secara tak terduga",
+  "Merasa tidak mampu mengendalikan hal-hal penting dalam hidup Anda",
+  "Merasa gugup dan stres",
+  "Merasa percaya diri terhadap kemampuan Anda dalam menangani masalah pribadi",
+  "Merasa bahwa segala sesuatunya berjalan sesuai dengan keinginan Anda",
+  "Merasa tidak mampu mengatasi semua hal yang harus Anda lakukan",
+  "Mampu mengendalikan hal-hal yang membuat Anda jengkel dalam hidup",
+  "Merasa mampu mengendalikan keadaan",
+  "Merasa marah karena hal-hal yang terjadi di luar kendali Anda",
+  "Merasa kesulitan menumpuk begitu tinggi hingga Anda tidak dapat mengatasinya",
 ];
-const SCALE = ["Tidak pernah", "Sangat jarang", "Jarang", "Kadang-kadang", "Sering", "Selalu"];
-const STORE_KEY = "who5_answers";
+const SCALE = ["Tidak pernah", "Hampir tidak pernah", "Kadang-kadang", "Cukup sering", "Sangat sering"];
+const STORE_KEY = "cw_pss10_answers";
 
 // Write-as-you-go: jawaban bertahan di localStorage (PRD P0-4)
 export default function Who5Form({ respondentId, onDone }: { respondentId: number; onDone: () => void }) {
   const [answers, setAnswers] = useState<(number | null)[]>(() => {
     try {
       const saved = JSON.parse(localStorage.getItem(STORE_KEY) ?? "[]");
-      return Array.isArray(saved) && saved.length === 5 && saved.every(n => typeof n === "number") ? saved : [null, null, null, null, null];
-    } catch { return [null, null, null, null, null]; }
+      return Array.isArray(saved) && saved.length === 10 && saved.every(n => typeof n === "number")
+        ? saved : Array(10).fill(null);
+    } catch { return Array(10).fill(null); }
   });
   const [idx, setIdx] = useState(0);
   const [submitting, setSubmitting] = useState(false);
@@ -30,8 +36,9 @@ export default function Who5Form({ respondentId, onDone }: { respondentId: numbe
     const next = [...answers];
     next[idx] = value;
     setAnswers(next);
-    if (idx < 4) setIdx(idx + 1);
+    if (idx < 9) setIdx(idx + 1);
   }
+
   async function submit() {
     if (answers.some(a => a == null)) return;
     setSubmitting(true);
@@ -55,47 +62,57 @@ export default function Who5Form({ respondentId, onDone }: { respondentId: numbe
   }
 
   const answered = answers.filter(a => a != null).length;
-  const isLast = idx === 4;
+  const isLast = idx === 9;
 
   return (
-    <div className="w-full max-w-md">
-      <div className="mb-6">
-        <div className="flex items-center justify-between text-sm text-soluusi-muted">
-          <span>Pertanyaan {idx + 1} dari 5</span>
-          <span>{answered}/5 terjawab</span>
+    <div className="w-full max-w-lg">
+      <div className="mb-7">
+        <div className="flex items-center justify-between text-[13px] font-medium">
+          <span className="text-soluusi-muted">Pertanyaan {idx + 1} dari 10</span>
+          <span className="text-soluusi-green">{answered}/10 terjawab</span>
         </div>
-        <div className="mt-2 h-2 rounded-full bg-slate-200">
-          <div className="h-2 rounded-full bg-soluusi-green transition-all" style={{ width: `${(answered / 5) * 100}%` }} />
+        <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-soluusi-line">
+          <div className="h-full rounded-full bg-soluusi-green transition-all duration-300" style={{ width: `${(answered / 10) * 100}%` }} />
         </div>
       </div>
 
-      <div className="mb-6">
-        <p className="text-sm text-soluusi-muted">Selama 2 minggu terakhir…</p>
-        <h1 className="mt-2 text-xl font-semibold leading-relaxed text-slate-900">{QUESTIONS[idx]}</h1>
+      <div className="rounded-2xl border border-soluusi-line bg-white p-6 shadow-[0_1px_3px_rgba(16,24,40,.06)] sm:p-7">
+        <p className="text-xs font-semibold uppercase tracking-wide text-soluusi-orange">Dalam satu bulan terakhir…</p>
+        <h1 className="mt-2 font-serif text-xl font-semibold leading-snug text-soluusi-ink">
+          Seberapa sering Anda {QUESTIONS[idx].charAt(0).toLowerCase() + QUESTIONS[idx].slice(1)}?
+        </h1>
+
+        <div className="mt-6 space-y-2.5">
+          {SCALE.map((label, value) => (
+            <button key={value} onClick={() => answer(value)} type="button"
+              className={`flex w-full items-center gap-3 rounded-xl border px-4 py-3.5 text-left text-sm font-medium transition ${
+                answers[idx] === value
+                  ? "border-soluusi-green bg-soluusi-green-light text-soluusi-green-dark ring-1 ring-soluusi-green"
+                  : "border-soluusi-line bg-white text-soluusi-ink hover:border-soluusi-green/50 hover:bg-soluusi-surface"
+              }`}>
+              <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
+                answers[idx] === value ? "border-soluusi-green bg-soluusi-green" : "border-soluusi-line"
+              }`}>
+                {answers[idx] === value && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
+              </span>
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="space-y-2">
-        {SCALE.map((label, value) => (
-          <button key={value} onClick={() => answer(value)}
-            className={`w-full rounded-xl border p-4 text-left font-medium transition
-              ${answers[idx] === value ? "border-soluusi-green bg-soluusi-green-light text-soluusi-green-dark" : "bg-white border-soluusi-line bg-white text-soluusi-ink hover:border-soluusi-green/60"}`}>
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {error && <p className="mt-4 rounded bg-red-50 p-3 text-sm text-red-700">{error}</p>}
+      {error && <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
 
       <div className="mt-6 flex gap-3">
         {idx > 0 && (
-          <button onClick={() => setIdx(idx - 1)} disabled={submitting}
-            className="flex-1 rounded-xl border bg-white border-soluusi-line bg-white py-3 font-semibold text-soluusi-ink hover:bg-slate-50 disabled:opacity-50">
-            Kembali
+          <button onClick={() => setIdx(idx - 1)} disabled={submitting} type="button"
+            className="flex-1 rounded-xl border border-soluusi-line bg-white py-3 text-sm font-semibold text-soluusi-ink transition hover:bg-soluusi-surface disabled:opacity-50">
+            Sebelumnya
           </button>
         )}
-        {isLast && answered === 5 && (
-          <button onClick={submit} disabled={submitting}
-            className="flex-1 rounded-xl bg-soluusi-green py-3 font-semibold text-white shadow hover:bg-soluusi-green-dark disabled:opacity-50">
+        {isLast && answered === 10 && (
+          <button onClick={submit} disabled={submitting} type="button"
+            className="flex-1 rounded-xl bg-soluusi-green py-3 text-sm font-semibold text-white shadow-md transition hover:bg-soluusi-green-dark disabled:opacity-50">
             {submitting ? "Mengirim…" : "Kirim Jawaban"}
           </button>
         )}
