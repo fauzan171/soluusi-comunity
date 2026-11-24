@@ -10,14 +10,19 @@
     "deploy": "npm run build && wrangler pages deploy dist --project-name community-wellbeing"
   },
   "dependencies": {
+    "pdf-lib": "^1.17.1",
     "react": "^18",
     "react-dom": "^18",
-    "wrangler": "^4.135.0"
+    "wrangler": "^4.135.0",
+    "xlsx": "^0.18.5",
+    "xlsx-js-style": "^1.2.0"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260921.1",
+    "@types/node": "^26.6.6",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/xlsx": "^0.0.35",
     "@vitejs/plugin-react": "^4",
     "autoprefixer": "^10.4.18",
     "postcss": "^8",

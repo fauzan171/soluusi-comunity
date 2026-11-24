@@ -21,13 +21,21 @@ export async function onRequestGet({ env, request }: any) {
     domiciles[r.domicile] = (domiciles[r.domicile] ?? 0) + 1;
     genders[r.gender as 'L' | 'P']++;
   }
+  // P1-3: rata-rata per pertanyaan (identifikasi item paling bermasalah)
+  const questionAverages = [1, 2, 3, 4, 5].map(i => {
+    const values = completed.map((r: any) => r[`q${i}`]).filter((v: any) => v != null);
+    return values.length ? Math.round((values.reduce((a: number, b: number) => a + b, 0) / values.length) * 100) / 100 : null;
+  });
+
   return Response.json({
     totalRespondents: rows?.length ?? 0,
     completed: completed.length,
     registeredOnly: (rows?.length ?? 0) - completed.length,
+    dropOffRate: rows?.length ? Math.round(((rows.length - completed.length) / rows.length) * 100) : 0,
     averageScore: completed.length ? Math.round((total / completed.length) * 10) / 10 : null,
     categories,
     domiciles,
     genders,
+    questionAverages,
   }, { headers: { 'Cache-Control': 'no-store' } });
 }

@@ -1,9 +1,12 @@
-import { bad, readJSON } from '../_lib/api';
-import { who5Summary } from '../_lib/scoring';
+import { bad, readJSON } from '../_lib/api.ts';
+import { rateLimited, clientIp } from '../_lib/rate-limit.ts';
 
 // POST /api/assessment — jawaban WHO-5 (PRD P0-3, P0-5)
 // Skor TIDAK dikirim ke FE — kategori dibahas konsultan (OQ-4: default off).
 export async function onRequestPost({ env, request }: any) {
+  if (rateLimited(clientIp(request), 10, 60_000)) {
+    return bad('Terlalu banyak percobaan. Coba lagi dalam 1 menit.', 429);
+  }
   const body = await readJSON<{ respondentId?: number; answers?: number[] }>(request);
   const id = Number(body.respondentId);
   const answers = Array.isArray(body.answers) ? body.answers.map(Number) : [];

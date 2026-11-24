@@ -28,6 +28,7 @@ export async function onRequestGet({ env, request }: any) {
       domicile: r.domicile, gender: r.gender,
       complaintExcerpt: r.complaint.length > 80 ? r.complaint.slice(0, 80) + '…' : r.complaint,
       score: summary?.score ?? null, label: summary?.label ?? null, color: summary?.color ?? null,
+      category: summary?.category ?? null,
     };
   });
   return Response.json({ respondents }, { headers: { 'Cache-Control': 'no-store' } });

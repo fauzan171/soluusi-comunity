@@ -1,4 +1,5 @@
-import { bad, readJSON } from '../_lib/api';
+import { bad, readJSON } from '../_lib/api.ts';
+import { rateLimited, clientIp } from '../_lib/rate-limit.ts';
 
 // POST /api/register — biodata responden (PRD P0-2)
 const DOMICILES = [
@@ -27,18 +28,22 @@ export function validateRegistration(body: any): { errors: Record<string, string
   if (complaint.length < 20) errors.complaint = 'Ceritakan keluhan minimal 20 karakter';
 
   const birth = new Date(birth_date);
+  let age = -1;
   if (!birth_date || Number.isNaN(birth.getTime())) {
     errors.birth_date = 'Tanggal lahir wajib diisi';
   } else {
-    const age = Math.floor((Date.now() - birth.getTime()) / (365.25 * 24 * 3600 * 1000));
+    age = Math.floor((Date.now() - birth.getTime()) / (365.25 * 24 * 3600 * 1000));
     if (age < 13) errors.birth_date = 'Layanan ini untuk usia 13 tahun ke atas';
     if (age > 120) errors.birth_date = 'Tanggal lahir tidak valid';
-    if (!errors.birth_date) return { data: { name, email, phone, domicile, birth_date, age, gender: gender as 'L' | 'P', complaint } };
   }
-  return { errors };
+  if (Object.keys(errors).length) return { errors };
+  return { data: { name, email, phone, domicile, birth_date, age, gender: gender as 'L' | 'P', complaint } };
 }
 
 export async function onRequestPost({ env, request }: any) {
+  if (rateLimited(clientIp(request), 10, 60_000)) {
+    return bad('Terlalu banyak percobaan. Coba lagi dalam 1 menit.', 429);
+  }
   const body = await readJSON(request);
   const result = validateRegistration(body);
   if ('errors' in result) return bad(JSON.stringify(result.errors), 400);
