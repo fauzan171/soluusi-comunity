@@ -26,16 +26,21 @@ const COLOR_CLASS: Record<string, string> = {
   low: "bg-green-100 text-green-800",
   medium: "bg-yellow-100 text-yellow-800",
 };
-const WHO5_LABELS = [
-  "Saya merasa ceria dan bersemangat",
-  "Saya merasa tenang dan santai",
-  "Saya merasa aktif dan penuh energi",
-  "Saya bangun tidur dengan perasaan segar dan cukup beristirahat",
-  "Hidup saya penuh hal-hal yang menarik",
+const PSS10_LABELS = [
+  "Merasa kesal karena sesuatu terjadi secara tak terduga",
+  "Merasa tidak mampu mengendalikan hal-hal penting dalam hidup Anda",
+  "Merasa gugup dan stres",
+  "Merasa percaya diri terhadap kemampuan Anda dalam menangani masalah pribadi",
+  "Merasa bahwa segala sesuatunya berjalan sesuai dengan keinginan Anda",
+  "Merasa tidak mampu mengatasi semua hal yang harus Anda lakukan",
+  "Mampu mengendalikan hal-hal yang membuat Anda jengkel dalam hidup",
+  "Merasa mampu mengendalikan keadaan",
+  "Merasa marah karena hal-hal yang terjadi di luar kendali Anda",
+  "Merasa kesulitan menumpuk begitu tinggi hingga Anda tidak dapat mengatasinya",
 ];
-const SCALE = ["Tidak pernah", "Sangat jarang", "Jarang", "Kadang-kadang", "Sering", "Selalu"];
+const SCALE = ["Tidak pernah", "Hampir tidak pernah", "Kadang-kadang", "Cukup sering", "Sangat sering"];
 const CATEGORY_ORDER: [string, string][] = [
-  ["good", "Baik 🟢"], ["fair", "Sedang 🟡"], ["poor", "Buruk 🟠"], ["depression", "Indikasi depresi 🔴"],
+  ["low", "Stres rendah 🟢"], ["medium", "Stres sedang 🟡"], ["high", "Stres tinggi 🔴"],
 ];
 
 export default function Dashboard({ onLogout }: { onLogout: () => void }) {
@@ -139,7 +144,7 @@ export default function Dashboard({ onLogout }: { onLogout: () => void }) {
         <section className="rounded-xl bg-white p-5 shadow-sm">
           <h2 className="text-sm font-semibold text-soluusi-muted">Rata-rata Jawaban per Pertanyaan PSS-10 (responden selesai)</h2>
           <ol className="mt-3 space-y-2">
-            {WHO5_LABELS.map((q, i) => (
+            {PSS10_LABELS.map((q, i) => (
               <li key={i} className="flex items-center gap-3">
                 <span className="w-56 shrink-0 truncate text-sm text-soluusi-ink" title={q}>{q}</span>
                 <div className="h-4 flex-1 rounded bg-soluusi-surface">
@@ -271,7 +276,7 @@ export default function Dashboard({ onLogout }: { onLogout: () => void }) {
             <h4 className="mt-4 text-sm font-semibold text-soluusi-ink">Jawaban PSS-10</h4>
             {detail.respondent.status === "completed" ? (
               <ol className="mt-2 space-y-2 text-sm">
-                {WHO5_LABELS.map((q, i) => (
+                {PSS10_LABELS.map((q, i) => (
                   <li key={i} className="rounded-lg bg-soluusi-surface p-3">
                     <p className="text-soluusi-ink">{q}</p>
                     <p className="mt-1 font-medium text-soluusi-green-dark">{detail.respondent[`q${i + 1}`]} · {SCALE[detail.respondent[`q${i + 1}`]]}</p>
