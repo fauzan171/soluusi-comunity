@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Logo from "../Logo";
 
 type Summary = {
   totalRespondents: number; completed: number; registeredOnly: number; dropOffRate: number;
@@ -59,7 +60,7 @@ export default function Dashboard({ onLogout }: { onLogout: () => void }) {
     setDetail(r);
   }
 
-  if (!summary || !respondents) return <p className="text-slate-500">Memuat…</p>;
+  if (!summary || !respondents) return <p className="text-soluusi-muted">Memuat…</p>;
 
   const filtered = respondents.filter(r =>
     (!filterCategory || r.category === filterCategory) &&
@@ -79,22 +80,22 @@ export default function Dashboard({ onLogout }: { onLogout: () => void }) {
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-slate-900">Dashboard Wellbeing</h1>
+        <div className="flex items-center gap-3"><Logo className="h-9 w-auto" /><div><h1 className="font-serif text-xl font-bold text-soluusi-ink">Dashboard Wellbeing</h1><p className="text-xs text-soluusi-muted">Community Wellbeing</p></div></div>
         <div className="flex flex-wrap gap-2">
           <a href={`/api/admin/export?${exportQuery()}`}
-            className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+            className="rounded-lg border border-soluusi-line bg-white px-4 py-2 text-sm font-medium text-soluusi-ink hover:bg-soluusi-surface">
             Export CSV
           </a>
           <a href={`/api/admin/export?format=xlsx&${exportQuery()}`}
-            className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+            className="rounded-lg border border-soluusi-line bg-white px-4 py-2 text-sm font-medium text-soluusi-ink hover:bg-soluusi-surface">
             Export Excel
           </a>
           <a href={`/api/admin/export?format=pdf&${exportQuery()}`}
-            className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+            className="rounded-lg border border-soluusi-line bg-white px-4 py-2 text-sm font-medium text-soluusi-ink hover:bg-soluusi-surface">
             Export PDF
           </a>
           <button onClick={onLogout}
-            className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+            className="rounded-lg border border-soluusi-line bg-white px-4 py-2 text-sm font-medium text-soluusi-ink hover:bg-soluusi-surface">
             Keluar
           </button>
         </div>
@@ -109,16 +110,16 @@ export default function Dashboard({ onLogout }: { onLogout: () => void }) {
       </section>
 
       <section className="rounded-xl bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold text-slate-500">Distribusi Kategori (responden selesai)</h2>
+        <h2 className="text-sm font-semibold text-soluusi-muted">Distribusi Kategori (responden selesai)</h2>
         <div className="mt-3 space-y-2">
           {CATEGORY_ORDER.map(([key, label]) => (
             <div key={key} className="flex items-center gap-3">
-              <span className="w-40 text-sm text-slate-700">{label}</span>
-              <div className="h-4 flex-1 rounded bg-slate-100">
+              <span className="w-40 text-sm text-soluusi-ink">{label}</span>
+              <div className="h-4 flex-1 rounded bg-soluusi-surface">
                 <div className={`h-4 rounded ${key === "good" ? "bg-green-500" : key === "fair" ? "bg-yellow-500" : key === "poor" ? "bg-orange-500" : "bg-red-500"}`}
                   style={{ width: `${summary.completed ? (summary.categories[key] / summary.completed) * 100 : 0}%` }} />
               </div>
-              <span className="w-8 text-right text-sm font-semibold text-slate-900">{summary.categories[key]}</span>
+              <span className="w-8 text-right text-sm font-semibold text-soluusi-ink">{summary.categories[key]}</span>
             </div>
           ))}
         </div>
@@ -126,16 +127,16 @@ export default function Dashboard({ onLogout }: { onLogout: () => void }) {
 
       {summary.questionAverages.some(v => v != null) && (
         <section className="rounded-xl bg-white p-5 shadow-sm">
-          <h2 className="text-sm font-semibold text-slate-500">Rata-rata Jawaban per Pertanyaan (responden selesai)</h2>
+          <h2 className="text-sm font-semibold text-soluusi-muted">Rata-rata Jawaban per Pertanyaan (responden selesai)</h2>
           <ol className="mt-3 space-y-2">
             {WHO5_LABELS.map((q, i) => (
               <li key={i} className="flex items-center gap-3">
-                <span className="w-56 shrink-0 truncate text-sm text-slate-700" title={q}>{q}</span>
-                <div className="h-4 flex-1 rounded bg-slate-100">
-                  <div className="h-4 rounded bg-indigo-500"
+                <span className="w-56 shrink-0 truncate text-sm text-soluusi-ink" title={q}>{q}</span>
+                <div className="h-4 flex-1 rounded bg-soluusi-surface">
+                  <div className="h-4 rounded bg-soluusi-green"
                     style={{ width: `${(summary.questionAverages[i] ?? 0) / 5 * 100}%` }} />
                 </div>
-                <span className="w-10 text-right text-sm font-semibold text-slate-900">{summary.questionAverages[i] ?? "—"}</span>
+                <span className="w-10 text-right text-sm font-semibold text-soluusi-ink">{summary.questionAverages[i] ?? "—"}</span>
               </li>
             ))}
           </ol>
@@ -144,33 +145,33 @@ export default function Dashboard({ onLogout }: { onLogout: () => void }) {
 
       <section>
         <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
-          <h2 className="text-sm font-semibold text-slate-500">Responden ({filtered.length})</h2>
+          <h2 className="text-sm font-semibold text-soluusi-muted">Responden ({filtered.length})</h2>
           <div className="flex flex-wrap items-end gap-2">
             <Filter label="Kategori">
               <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)}
-                className="rounded-lg border border-slate-300 bg-white p-2 text-sm">
+                className="rounded-lg border border-soluusi-line bg-white p-2 text-sm">
                 <option value="">Semua</option>
                 {CATEGORY_ORDER.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
               </select>
             </Filter>
             <Filter label="Domisili">
               <select value={filterDomicile} onChange={e => setFilterDomicile(e.target.value)}
-                className="rounded-lg border border-slate-300 bg-white p-2 text-sm">
+                className="rounded-lg border border-soluusi-line bg-white p-2 text-sm">
                 <option value="">Semua</option>
                 {Object.keys(summary.domiciles).map(d => <option key={d} value={d}>{d}</option>)}
               </select>
             </Filter>
             <Filter label="Dari">
               <input type="date" value={filterFrom} onChange={e => setFilterFrom(e.target.value)}
-                className="rounded-lg border border-slate-300 bg-white p-2 text-sm" />
+                className="rounded-lg border border-soluusi-line bg-white p-2 text-sm" />
             </Filter>
             <Filter label="Sampai">
               <input type="date" value={filterTo} onChange={e => setFilterTo(e.target.value)}
-                className="rounded-lg border border-slate-300 bg-white p-2 text-sm" />
+                className="rounded-lg border border-soluusi-line bg-white p-2 text-sm" />
             </Filter>
             {(filterCategory || filterDomicile || filterFrom || filterTo) && (
               <button onClick={() => { setFilterCategory(""); setFilterDomicile(""); setFilterFrom(""); setFilterTo(""); }}
-                className="rounded-lg border border-slate-300 bg-white p-2 text-sm text-slate-500 hover:bg-slate-50">
+                className="rounded-lg border border-soluusi-line bg-white p-2 text-sm text-soluusi-muted hover:bg-soluusi-surface">
                 Reset
               </button>
             )}
@@ -178,7 +179,7 @@ export default function Dashboard({ onLogout }: { onLogout: () => void }) {
         </div>
         <div className="overflow-x-auto rounded-xl bg-white shadow-sm">
           <table className="w-full text-left text-sm">
-            <thead className="border-b border-slate-200 text-xs uppercase text-slate-500">
+            <thead className="border-b border-soluusi-line text-xs uppercase text-soluusi-muted">
               <tr>
                 <th className="p-3">Waktu</th><th className="p-3">Nama</th><th className="p-3">Usia</th>
                 <th className="p-3">Domisili</th><th className="p-3">Skor</th><th className="p-3">Keluhan</th><th className="p-3"></th>
@@ -186,27 +187,27 @@ export default function Dashboard({ onLogout }: { onLogout: () => void }) {
             </thead>
             <tbody>
               {filtered.map(r => (
-                <tr key={r.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
-                  <td className="p-3 whitespace-nowrap text-slate-500">{r.createdAt}</td>
-                  <td className="p-3 font-medium text-slate-900">{r.name}</td>
+                <tr key={r.id} className="border-b border-soluusi-line/60 last:border-0 hover:bg-soluusi-surface">
+                  <td className="p-3 whitespace-nowrap text-soluusi-muted">{r.createdAt}</td>
+                  <td className="p-3 font-medium text-soluusi-ink">{r.name}</td>
                   <td className="p-3">{r.age}</td>
-                  <td className="p-3 text-slate-600">{r.domicile}</td>
+                  <td className="p-3 text-soluusi-muted">{r.domicile}</td>
                   <td className="p-3">
                     {r.score != null
                       ? <span className={`rounded-full px-2 py-1 text-xs font-semibold ${COLOR_CLASS[r.color!]}`}>{r.score} · {r.label}</span>
-                      : <span className="text-xs text-slate-400">belum selesai</span>}
+                      : <span className="text-xs text-soluusi-muted/70">belum selesai</span>}
                   </td>
-                  <td className="p-3 max-w-xs truncate text-slate-600">{r.complaintExcerpt}</td>
+                  <td className="p-3 max-w-xs truncate text-soluusi-muted">{r.complaintExcerpt}</td>
                   <td className="p-3 whitespace-nowrap">
-                    <button onClick={() => openDetail(r.id)} className="text-sm font-medium text-indigo-600 hover:underline">Detail</button>
+                    <button onClick={() => openDetail(r.id)} className="text-sm font-medium text-soluusi-green hover:underline">Detail</button>
                     {" "}
                     <a href={`/api/admin/export?format=pdf&id=${r.id}`}
-                      className="text-sm font-medium text-indigo-600 hover:underline">PDF</a>
+                      className="text-sm font-medium text-soluusi-green hover:underline">PDF</a>
                   </td>
                 </tr>
               ))}
               {!filtered.length && (
-                <tr><td colSpan={7} className="p-6 text-center text-slate-400">Tidak ada responden yang cocok filter</td></tr>
+                <tr><td colSpan={7} className="p-6 text-center text-soluusi-muted/70">Tidak ada responden yang cocok filter</td></tr>
               )}
             </tbody>
           </table>
@@ -217,11 +218,11 @@ export default function Dashboard({ onLogout }: { onLogout: () => void }) {
         <div className="fixed inset-0 z-10 flex items-center justify-center bg-black/50 p-4" onClick={() => setDetail(null)}>
           <div className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-xl bg-white p-6 shadow-xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-start justify-between">
-              <h3 className="text-lg font-bold text-slate-900">{detail.respondent.name}</h3>
-              <button onClick={() => setDetail(null)} className="text-slate-400 hover:text-slate-700">✕</button>
+              <h3 className="font-serif text-lg font-bold text-soluusi-ink">{detail.respondent.name}</h3>
+              <button onClick={() => setDetail(null)} className="text-soluusi-muted hover:text-soluusi-ink">✕</button>
             </div>
             <dl className="mt-4 space-y-1 text-sm">
-              <Row k="Waktu" v={detail.respondent.created_at} />
+              <Row k="Waktu Submit" v={detail.respondent.created_at} />
               <Row k="Email" v={detail.respondent.email} />
               <Row k="Telepon" v={detail.respondent.phone} />
               <Row k="Domisili" v={detail.respondent.domicile} />
@@ -235,32 +236,32 @@ export default function Dashboard({ onLogout }: { onLogout: () => void }) {
                 </div>
               )}
             </dl>
-            <h4 className="mt-4 text-sm font-semibold text-slate-700">Keluhan</h4>
-            <p className="mt-1 text-sm text-slate-600">{detail.respondent.complaint}</p>
+            <h4 className="mt-4 text-sm font-semibold text-soluusi-ink">Keluhan</h4>
+            <p className="mt-1 text-sm text-soluusi-muted">{detail.respondent.complaint}</p>
             {detail.respondent.status === "completed" && (
               <div className="mt-4 flex gap-2">
                 <a href={`/api/admin/export?format=pdf&id=${detail.respondent.id}`}
-                  className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                  className="rounded-lg border border-soluusi-line bg-white px-4 py-2 text-sm font-medium text-soluusi-ink hover:bg-soluusi-surface">
                   Unduh PDF
                 </a>
                 <a href={`/api/admin/export?format=xlsx&id=${detail.respondent.id}`}
-                  className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                  className="rounded-lg border border-soluusi-line bg-white px-4 py-2 text-sm font-medium text-soluusi-ink hover:bg-soluusi-surface">
                   Unduh Excel
                 </a>
               </div>
             )}
-            <h4 className="mt-4 text-sm font-semibold text-slate-700">Jawaban WHO-5</h4>
+            <h4 className="mt-4 text-sm font-semibold text-soluusi-ink">Jawaban WHO-5</h4>
             {detail.respondent.status === "completed" ? (
               <ol className="mt-2 space-y-2 text-sm">
                 {WHO5_LABELS.map((q, i) => (
-                  <li key={i} className="rounded-lg bg-slate-50 p-3">
-                    <p className="text-slate-700">{q}</p>
-                    <p className="mt-1 font-medium text-slate-900">{SCALE[detail.respondent[`q${i + 1}`]]}</p>
+                  <li key={i} className="rounded-lg bg-soluusi-surface p-3">
+                    <p className="text-soluusi-ink">{q}</p>
+                    <p className="mt-1 font-medium text-soluusi-green-dark">{detail.respondent[`q${i + 1}`]} · {SCALE[detail.respondent[`q${i + 1}`]]}</p>
                   </li>
                 ))}
               </ol>
             ) : (
-              <p className="mt-1 text-sm text-slate-400">Belum mengisi asesmen</p>
+              <p className="mt-1 text-sm text-soluusi-muted/70">Belum mengisi asesmen</p>
             )}
           </div>
         </div>
@@ -272,8 +273,8 @@ export default function Dashboard({ onLogout }: { onLogout: () => void }) {
 function Stat({ label, value }: { label: string; value: number | string }) {
   return (
     <div className="rounded-xl bg-white p-4 shadow-sm">
-      <p className="text-sm text-slate-500">{label}</p>
-      <p className="mt-1 text-2xl font-bold text-slate-900">{value}</p>
+      <p className="text-sm text-soluusi-muted">{label}</p>
+      <p className="mt-1 text-2xl font-bold text-soluusi-ink">{value}</p>
     </div>
   );
 }
@@ -281,15 +282,15 @@ function Stat({ label, value }: { label: string; value: number | string }) {
 function Row({ k, v }: { k: string; v: string }) {
   return (
     <div className="flex gap-4">
-      <dt className="w-32 shrink-0 text-slate-500">{k}</dt>
-      <dd className="text-slate-900">{v}</dd>
+      <dt className="w-32 shrink-0 text-soluusi-muted">{k}</dt>
+      <dd className="font-medium text-soluusi-ink">{v}</dd>
     </div>
   );
 }
 
 function Filter({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label className="flex flex-col text-xs text-slate-500">
+    <label className="flex flex-col text-xs text-soluusi-muted">
       {label}
       {children}
     </label>

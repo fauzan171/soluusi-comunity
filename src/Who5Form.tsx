@@ -60,17 +60,17 @@ export default function Who5Form({ respondentId, onDone }: { respondentId: numbe
   return (
     <div className="w-full max-w-md">
       <div className="mb-6">
-        <div className="flex items-center justify-between text-sm text-slate-500">
+        <div className="flex items-center justify-between text-sm text-soluusi-muted">
           <span>Pertanyaan {idx + 1} dari 5</span>
           <span>{answered}/5 terjawab</span>
         </div>
         <div className="mt-2 h-2 rounded-full bg-slate-200">
-          <div className="h-2 rounded-full bg-indigo-600 transition-all" style={{ width: `${(answered / 5) * 100}%` }} />
+          <div className="h-2 rounded-full bg-soluusi-green transition-all" style={{ width: `${(answered / 5) * 100}%` }} />
         </div>
       </div>
 
       <div className="mb-6">
-        <p className="text-sm text-slate-500">Selama 2 minggu terakhir…</p>
+        <p className="text-sm text-soluusi-muted">Selama 2 minggu terakhir…</p>
         <h1 className="mt-2 text-xl font-semibold leading-relaxed text-slate-900">{QUESTIONS[idx]}</h1>
       </div>
 
@@ -78,7 +78,7 @@ export default function Who5Form({ respondentId, onDone }: { respondentId: numbe
         {SCALE.map((label, value) => (
           <button key={value} onClick={() => answer(value)}
             className={`w-full rounded-xl border p-4 text-left font-medium transition
-              ${answers[idx] === value ? "border-indigo-600 bg-indigo-50 text-indigo-900" : "border-slate-300 bg-white text-slate-700 hover:border-indigo-400"}`}>
+              ${answers[idx] === value ? "border-soluusi-green bg-soluusi-green-light text-soluusi-green-dark" : "bg-white border-soluusi-line bg-white text-soluusi-ink hover:border-soluusi-green/60"}`}>
             {label}
           </button>
         ))}
@@ -89,13 +89,13 @@ export default function Who5Form({ respondentId, onDone }: { respondentId: numbe
       <div className="mt-6 flex gap-3">
         {idx > 0 && (
           <button onClick={() => setIdx(idx - 1)} disabled={submitting}
-            className="flex-1 rounded-xl border border-slate-300 bg-white py-3 font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50">
+            className="flex-1 rounded-xl border bg-white border-soluusi-line bg-white py-3 font-semibold text-soluusi-ink hover:bg-slate-50 disabled:opacity-50">
             Kembali
           </button>
         )}
         {isLast && answered === 5 && (
           <button onClick={submit} disabled={submitting}
-            className="flex-1 rounded-xl bg-indigo-600 py-3 font-semibold text-white shadow hover:bg-indigo-700 disabled:opacity-50">
+            className="flex-1 rounded-xl bg-soluusi-green py-3 font-semibold text-white shadow hover:bg-soluusi-green-dark disabled:opacity-50">
             {submitting ? "Mengirim…" : "Kirim Jawaban"}
           </button>
         )}

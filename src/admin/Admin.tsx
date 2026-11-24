@@ -12,9 +12,9 @@ export default function Admin() {
       .catch(() => setAuthed(false));
   }, []);
 
-  if (authed == null) return <p className="text-slate-500">Memuat…</p>;
+  if (authed == null) return <p className="text-soluusi-muted">Memuat…</p>;
   return (
-    <div className="min-h-screen bg-slate-50 px-4 py-8">
+    <div className="min-h-screen bg-soluusi-surface px-4 py-8">
       <div className="mx-auto max-w-4xl">
         {authed
           ? <Dashboard onLogout={() => setAuthed(false)} />

@@ -26,7 +26,7 @@ export default function App() {
   if (location.pathname === "/admin") return <Admin />;
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+    <main className="flex min-h-screen items-center justify-center bg-soluusi-surface px-4">
       {screen === "landing" && (
         <Landing onStart={() => setScreen("form")} />
       )}

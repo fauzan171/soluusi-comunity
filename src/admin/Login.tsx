@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Logo from "../Logo";
 
 export default function Login({ onSuccess }: { onSuccess: () => void }) {
   const [pin, setPin] = useState("");
@@ -28,13 +29,14 @@ export default function Login({ onSuccess }: { onSuccess: () => void }) {
 
   return (
     <form onSubmit={submit} className="mx-auto max-w-xs space-y-4">
-      <h1 className="text-center text-2xl font-bold text-slate-900">Admin</h1>
+      <div className="flex justify-center"><Logo className="h-10 w-auto" /></div>
+      <h1 className="text-center font-serif text-xl font-bold text-soluusi-ink">Admin Wellbeing</h1>
       <input type="password" value={pin} onChange={e => setPin(e.target.value)}
         placeholder="PIN" inputMode="numeric" autoFocus
-        className="w-full rounded-lg border border-slate-300 p-3 text-center text-lg tracking-widest focus:border-indigo-500 focus:outline-none" />
+        className="w-full rounded-lg border border-soluusi-line p-3 text-center text-lg tracking-widest focus:border-soluusi-green focus:outline-none" />
       {error && <p className="text-center text-sm text-red-600">{error}</p>}
       <button type="submit" disabled={submitting || !pin}
-        className="w-full rounded-xl bg-indigo-600 py-3 font-semibold text-white shadow hover:bg-indigo-700 disabled:opacity-50">
+        className="w-full rounded-xl bg-soluusi-green py-3 font-semibold text-white shadow hover:bg-soluusi-green-dark disabled:opacity-50">
         {submitting ? "Memeriksa…" : "Masuk"}
       </button>
     </form>
