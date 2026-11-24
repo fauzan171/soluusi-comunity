@@ -44,11 +44,11 @@ export default function App() {
           onDone={() => setScreen("thanks")}
         />
       )}
-      {screen === "thanks" && (
-        <Thanks onReset={() => {
+      {screen === "thanks" && respondentId != null && (
+        <Thanks respondentId={respondentId} onReset={() => {
           setScreen("landing");
           setRespondentId(null);
-          localStorage.removeItem("who5_answers");
+          localStorage.removeItem("cw_pss10_answers");
         }} />
       )}
     </main>
