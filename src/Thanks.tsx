@@ -2,13 +2,15 @@ import { useEffect, useState } from "react";
 import Logo from "./Logo";
 import { CONSULTANTS } from "./data/consultants";
 
-type Voucher = { code: string; consultantSlug: string };
+type Voucher = { code: string; consultantSlug: string; name?: string };
 
 export default function Thanks({ respondentId, onReset }: { respondentId: number; onReset: () => void }) {
   const [selected, setSelected] = useState<string>(CONSULTANTS[0].slug);
   const [voucher, setVoucher] = useState<Voucher | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [name, setName] = useState<string>("");
+
 
   const consultant = CONSULTANTS.find(c => c.slug === (voucher?.consultantSlug ?? selected))!;
 
@@ -27,7 +29,7 @@ export default function Thanks({ respondentId, onReset }: { respondentId: number
         if (!r.ok) throw new Error(body.error ?? "Gagal membuat voucher");
         return body as Voucher;
       })
-      .then(v => { if (alive) setVoucher(v); })
+      .then(v => { if (alive) { setVoucher(v); if (v.name) setName(v.name); } })
       .catch(e => { if (alive) setError(e.message); })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
@@ -95,8 +97,16 @@ export default function Thanks({ respondentId, onReset }: { respondentId: number
           <div className="absolute -left-2.5 top-1/2 h-5 w-5 -translate-y-1/2 rounded-full bg-soluusi-surface" />
           <div className="absolute -right-2.5 top-1/2 h-5 w-5 -translate-y-1/2 rounded-full bg-soluusi-surface" />
 
-          <p className="text-xs text-soluusi-muted">Atas nama</p>
-          <p className="text-sm font-semibold text-soluusi-ink">{consultant.name}</p>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-xs text-soluusi-muted">Atas nama</p>
+              <p className="text-sm font-semibold text-soluusi-ink">{name ?? "Peserta"}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs text-soluusi-muted">Konsultan</p>
+              <p className="text-sm font-semibold text-soluusi-ink">{consultant.name}</p>
+            </div>
+          </div>
 
           <div className="my-4 border-t border-dashed border-soluusi-line" />
 

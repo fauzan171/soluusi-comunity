@@ -37,7 +37,7 @@ export async function onRequestPost({ env, request }: any) {
         .bind(consultantSlug, respondentId).run();
     }
     return Response.json(
-      { code: existing.code, consultantSlug },
+      { code: existing.code, consultantSlug, name: respondent.name },
       { headers: { 'Cache-Control': 'no-store' } },
     );
   }
@@ -48,7 +48,7 @@ export async function onRequestPost({ env, request }: any) {
       await env.DB.prepare(
         'INSERT INTO vouchers (code, respondent_id, consultant_slug) VALUES (?,?,?)'
       ).bind(code, respondentId, consultantSlug).run();
-      return Response.json({ code, consultantSlug }, { headers: { 'Cache-Control': 'no-store' } });
+      return Response.json({ code, consultantSlug, name: respondent.name }, { headers: { 'Cache-Control': 'no-store' } });
     } catch {
       // code collision — coba lagi
     }
