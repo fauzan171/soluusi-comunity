@@ -12,12 +12,12 @@ export default function Landing({ onStart }: { onStart: () => void }) {
       <h1 className="mt-2 font-serif text-3xl font-bold text-soluusi-ink">Cek Kesejahteraanmu</h1>
       <p className="mt-3 text-soluusi-muted">
         Isi data diri dan 10 pertanyaan singkat tentang bagaimana perasaanmu
-        selama sebulan terakhir. Lengkapi asesmennya dan dapatkan voucher
-        konsultasi gratis untuk dibahas bersama konsultan.
+        selama sebulan terakhir. Lengkapi asesmennya dan dapatkan diskon
+        konsultasi untuk dibahas bersama konsultan.
       </p>
       <ul className="mt-4 space-y-1 text-sm text-soluusi-muted">
         <li>⏱️ Kurang dari 3 menit</li>
-        <li>🎁 Voucher konsultasi Rp 50.000 setelah selesai</li>
+        <li>🎁 Diskon konsultasi Rp 20.000 setelah selesai</li>
         <li>🔒 Jawabanmu hanya dibaca oleh konsultan dan tim layanan</li>
       </ul>
       <button

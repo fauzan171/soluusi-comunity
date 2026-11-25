@@ -14,4 +14,4 @@ CREATE TABLE promo_campaigns (
 ALTER TABLE vouchers ADD COLUMN promo_code TEXT;
 
 INSERT INTO promo_campaigns (code, max_claims, discount_label) VALUES
-  ('AKUPEDULIAKU1', 200, 'Rp 50.000');
+  ('AKUPEDULIAKU1', 200, 'Rp 20.000');

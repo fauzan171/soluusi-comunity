@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Landing from "./Landing";
 import BiodataForm from "./BiodataForm";
-import Who5Form from "./Who5Form";
+import Who5Form, { type PssResult } from "./Who5Form";
 import Thanks from "./Thanks";
 import Admin from "./admin/Admin";
 
@@ -10,6 +10,7 @@ type Screen = "landing" | "form" | "who5" | "thanks";
 export default function App() {
   const [screen, setScreen] = useState<Screen>("landing");
   const [respondentId, setRespondentId] = useState<number | null>(null);
+  const [result, setResult] = useState<PssResult | null>(null);
 
   // SPA routing sederhana: / → flow user, /admin → dashboard
   useEffect(() => {
@@ -17,6 +18,7 @@ export default function App() {
       if (location.pathname === "/admin") return;
       setScreen("landing");
       setRespondentId(null);
+      setResult(null);
       localStorage.removeItem("who5_answers");
     };
     window.addEventListener("popstate", onPop);
@@ -41,13 +43,17 @@ export default function App() {
       {screen === "who5" && respondentId != null && (
         <Who5Form
           respondentId={respondentId}
-          onDone={() => setScreen("thanks")}
+          onDone={(r) => {
+            setResult(r);
+            setScreen("thanks");
+          }}
         />
       )}
       {screen === "thanks" && respondentId != null && (
-        <Thanks respondentId={respondentId} onReset={() => {
+        <Thanks respondentId={respondentId} result={result} onReset={() => {
           setScreen("landing");
           setRespondentId(null);
+          setResult(null);
           localStorage.removeItem("cw_pss10_answers");
         }} />
       )}

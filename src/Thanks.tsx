@@ -1,11 +1,23 @@
 import { useEffect, useState } from "react";
 import Logo from "./Logo";
 import { CONSULTANTS } from "./data/consultants";
+import type { PssResult } from "./Who5Form";
 
 type Promo = { code: string; discountLabel: string; remaining: number; soldOut: boolean } | null;
 type Voucher = { code: string; consultantSlug: string; name?: string; promo?: Promo };
 
-export default function Thanks({ respondentId, onReset }: { respondentId: number; onReset: () => void }) {
+const RESULT_COLOR: Record<string, string> = {
+  low: "bg-green-100 text-green-800",
+  medium: "bg-yellow-100 text-yellow-800",
+  high: "bg-red-100 text-red-800",
+};
+const RESULT_COPY: Record<string, string> = {
+  low: "Skormu menunjukkan tingkat stres rendah. Pertahankan kebiasaan baik yang membuatmu seimbang.",
+  medium: "Skormu menunjukkan tingkat stres sedang. Sesi konsultasimu bisa jadi ruang aman untuk menuangkannya.",
+  high: "Skormu menunjukkan tingkat stres tinggi. Kamu tidak sendirian — sesi konsultasimu sudah tersedia, manfaatkan ya.",
+};
+
+export default function Thanks({ respondentId, result, onReset }: { respondentId: number; result: PssResult | null; onReset: () => void }) {
   const [selected, setSelected] = useState<string>(CONSULTANTS[0].slug);
   const [voucher, setVoucher] = useState<Voucher | null>(null);
   const [loading, setLoading] = useState(false);
@@ -14,6 +26,8 @@ export default function Thanks({ respondentId, onReset }: { respondentId: number
 
 
   const consultant = CONSULTANTS.find(c => c.slug === (voucher?.consultantSlug ?? selected))!;
+  // Kode yang ditukar di Soluusi = kode promo; kode WB- hanya ID unik pemilik voucher.
+  const redeemCode = voucher ? (voucher.promo?.code ?? voucher.code) : null;
 
   // Ambil/buat voucher saat pilihan berubah
   useEffect(() => {
@@ -47,6 +61,26 @@ export default function Thanks({ respondentId, onReset }: { respondentId: number
           konsultasimu di Soluusi.
         </p>
       </div>
+
+      {/* Hasil asesmen — peserta bisa melihat hasilnya */}
+      {result && (
+        <div className="mt-6 rounded-2xl border border-soluusi-line bg-white p-5">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-soluusi-muted">Hasil asesmen PSS-10</p>
+              <p className="mt-1 font-serif text-3xl font-bold text-soluusi-ink">
+                {result.score}<span className="text-base font-semibold text-soluusi-muted">/{result.maxScore}</span>
+              </p>
+            </div>
+            <span className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-bold ${RESULT_COLOR[result.color] ?? ""}`}>
+              {result.label}
+            </span>
+          </div>
+          <p className="mt-3 text-xs leading-relaxed text-soluusi-muted">
+            {RESULT_COPY[result.color] ?? ""} Catatan: hasil ini deskriptif, bukan diagnosis medis.
+          </p>
+        </div>
+      )}
 
       {/* Co-brand */}
       <div className="mt-7 flex items-center justify-center gap-3 rounded-2xl border border-soluusi-line bg-white px-4 py-3">
@@ -97,10 +131,11 @@ export default function Thanks({ respondentId, onReset }: { respondentId: number
 
             <div className="relative flex items-start justify-between gap-3">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/60">Tiket promo</p>
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/60">Community Wellbeing #1</p>
                 <p className="mt-1 font-serif text-2xl font-bold leading-tight">
-                  {voucher?.promo?.discountLabel ?? "Rp 50.000"}
-                  <span className="ml-1.5 text-sm font-medium text-white/80">diskon</span>
+                  {voucher?.promo
+                    ? <>{voucher.promo.discountLabel}<span className="ml-1.5 text-sm font-medium text-white/80">diskon</span></>
+                    : <span className="text-lg">Voucher Konsultasi</span>}
                 </p>
                 <p className="mt-1 text-xs text-white/70">Konsultasi Mental Health · Soluusi × Gerakan Binar</p>
               </div>
@@ -136,17 +171,22 @@ export default function Thanks({ respondentId, onReset }: { respondentId: number
               )}
               {error && <p className="mt-1.5 text-sm text-red-600">{error}</p>}
 
-              {voucher && !loading && (
+              {redeemCode && !loading && (
                 <div className="mt-1.5 flex flex-wrap items-center gap-2">
                   <code className="rounded-xl border-2 border-dashed border-soluusi-green bg-soluusi-green-light px-4 py-2.5 font-mono text-lg font-bold tracking-[0.15em] text-soluusi-green-dark">
-                    {voucher.code}
+                    {redeemCode}
                   </code>
                   <button type="button"
-                    onClick={() => navigator.clipboard?.writeText(voucher.code)}
+                    onClick={() => navigator.clipboard?.writeText(redeemCode)}
                     className="rounded-xl border border-soluusi-line bg-white px-3.5 py-2.5 text-xs font-semibold text-soluusi-ink transition hover:border-soluusi-green hover:bg-soluusi-green-light active:scale-95">
                     Salin
                   </button>
                 </div>
+              )}
+              {voucher?.promo && !loading && (
+                <p className="mt-2 text-xs text-soluusi-muted">
+                  ID voucher: <span className="font-mono">{voucher.code}</span>
+                </p>
               )}
             </div>
 
@@ -168,8 +208,10 @@ export default function Thanks({ respondentId, onReset }: { respondentId: number
               </div>
             )}
 
+            {/* ponytail: periode & min. transaksi hardcoded dari kampanye AKUPEDULIAKU1 (200 klaim) — pindahkan ke tabel promo_campaigns kalau kampanye berikutnya beda. */}
             <p className="mt-4 text-xs leading-relaxed text-soluusi-muted">
-              Tukarkan kode ini saat checkout di Soluusi. Berlaku 30 hari sejak diterbitkan.
+              Tukarkan kode ini saat checkout di soluusi.com. Potongan Rp 20.000 untuk transaksi
+              minimal Rp 100.000. Berlaku 25 Nov – 5 Des 2026.
             </p>
           </div>
         </div>

@@ -63,8 +63,8 @@ export async function buildVoucherPdf(v: VoucherInput): Promise<Uint8Array> {
   // Nominal badge
   const badgeX = W - M - 118;
   page.drawRectangle({ x: badgeX, y: H - 76, width: 118, height: 52, color: WHITE });
-  page.drawText('POTONGAN', { x: badgeX + 30, y: H - 40, font: bold, size: 7, color: MUTED });
-  page.drawText('Rp 50.000', { x: badgeX + 18, y: H - 64, font: bold, size: 17, color: ORANGE });
+  page.drawText('DISKON', { x: badgeX + 46, y: H - 40, font: bold, size: 7, color: MUTED });
+  page.drawText('Rp 20.000', { x: badgeX + 18, y: H - 64, font: bold, size: 17, color: ORANGE });
 
   let y = H - 128;
 
@@ -95,12 +95,18 @@ export async function buildVoucherPdf(v: VoucherInput): Promise<Uint8Array> {
 
   // Voucher code (dashed ticket)
   y -= boxH + 18;
-  page.drawText(v.promoCode ? 'KODE VOUCHER (PROMO TERBATAS)' : 'KODE VOUCHER', { x: M, y, font: bold, size: 7, color: MUTED });
+  // Kode yang dipakai saat checkout = kode promo; kode WB- jadi ID unik pemilik voucher.
+  const displayCode = v.promoCode ?? v.code;
+  const big = v.promoCode ? 12 : 17;
+  page.drawText(v.promoCode ? 'KODE PROMO (MASUKKAN SAAT CHECKOUT)' : 'KODE VOUCHER', { x: M, y, font: bold, size: 7, color: MUTED });
   y -= 6;
   const codeY = y - 30;
   page.drawRectangle({ x: M, y: codeY, width: 232, height: 34, color: rgb(0.90, 0.95, 0.93), borderColor: BRAND, borderWidth: 1.5, borderDashArray: [5, 3] });
-  const codeWidth = mono.widthOfTextAtSize(v.code, 17);
-  page.drawText(v.code, { x: M + (232 - codeWidth) / 2, y: codeY + 10, font: mono, size: 17, color: BRAND_DARK });
+  const codeWidth = mono.widthOfTextAtSize(displayCode, big);
+  page.drawText(displayCode, { x: M + (232 - codeWidth) / 2, y: codeY + (v.promoCode ? 12 : 10), font: mono, size: big, color: BRAND_DARK });
+  if (v.promoCode) {
+    page.drawText(ascii(`ID Voucher: ${v.code}`), { x: M, y: codeY - 12, font: regular, size: 7.5, color: MUTED });
+  }
 
   // How to redeem
   const rx = M + 262;
@@ -108,8 +114,8 @@ export async function buildVoucherPdf(v: VoucherInput): Promise<Uint8Array> {
   page.drawText('CARA MENUKARKAN', { x: rx, y: ry, font: bold, size: 7, color: MUTED });
   const steps = [
     '1. Buka soluusi.com dan pilih konsultan di atas.',
-    '2. Jadwalkan sesi, lalu masukkan kode voucher saat checkout.',
-    '3. Potongan Rp 50.000 otomatis diterapkan.',
+    '2. Masukkan kode promo saat checkout.',
+    '3. Diskon Rp 20.000 otomatis diterapkan.',
   ];
   for (const step of steps) {
     ry -= 13;
@@ -120,19 +126,19 @@ export async function buildVoucherPdf(v: VoucherInput): Promise<Uint8Array> {
   if (v.promoCode) {
     const px = W - M - 150;
     let py = y - 6;
-    page.drawText('KODE PROMO', { x: px, y: py, font: bold, size: 7, color: ORANGE });
-    py -= 15;
-    page.drawText(ascii(v.promoCode), { x: px, y: py, font: mono, size: 11, color: INK });
+    page.drawText('PROMO TERBATAS', { x: px, y: py, font: bold, size: 7, color: ORANGE });
     if (typeof v.promoRemaining === 'number') {
-      py -= 12;
-      page.drawText(ascii(`Sisa ${v.promoRemaining} klaim`), { x: px, y: py, font: regular, size: 7.5, color: MUTED });
+      py -= 15;
+      page.drawText(ascii(`Sisa ${v.promoRemaining} dari 200 klaim`), { x: px, y: py, font: regular, size: 8, color: INK });
     }
+    py -= 12;
+    page.drawText('Min. transaksi Rp 100.000', { x: px, y: py, font: regular, size: 7.5, color: MUTED });
   }
 
   // Footer
   const fy = 34;
   page.drawLine({ start: { x: M, y: fy + 16 }, end: { x: W - M, y: fy + 16 }, thickness: 0.7, color: rgb(0.86, 0.89, 0.90) });
-  page.drawText(ascii(`Diterbitkan ${v.issuedAt} - Berlaku 90 hari`), { x: M, y: fy, font: regular, size: 7.5, color: MUTED });
+  page.drawText(ascii(`Diterbitkan ${v.issuedAt} - Kode promo berlaku s.d. 5 Des 2026`), { x: M, y: fy, font: regular, size: 7.5, color: MUTED });
   page.drawText('Soluusi.com  |  Gerakan Binar', { x: W - M - 150, y: fy, font: regular, size: 7.5, color: MUTED });
 
   doc.setTitle(`Voucher Konsultasi - ${v.name}`);

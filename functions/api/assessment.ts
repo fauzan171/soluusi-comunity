@@ -1,8 +1,9 @@
 import { bad, readJSON } from '../_lib/api.ts';
 import { rateLimited, clientIp } from '../_lib/rate-limit.ts';
+import { pss10Summary } from '../_lib/scoring.ts';
 
 // POST /api/assessment — jawaban PSS-10 (10 item, skala 0–4)
-// Skor TIDAK dikirim ke FE — dibahas konsultan (hindari self-diagnosis).
+// Balikan menyertakan skor + band agar peserta bisa melihat hasilnya sendiri.
 export async function onRequestPost({ env, request }: any) {
   if (rateLimited(clientIp(request), 10, 60_000)) {
     return bad('Terlalu banyak percobaan. Coba lagi dalam 1 menit.', 429);
@@ -21,5 +22,6 @@ export async function onRequestPost({ env, request }: any) {
     answers[5], answers[6], answers[7], answers[8], answers[9],
     'completed', id, 'registered').run();
   if (!meta.changes) return bad('Responden tidak ditemukan atau asesmen sudah dikirim', 404);
-  return Response.json({ ok: true }, { headers: { 'Cache-Control': 'no-store' } });
+  const result = pss10Summary(answers);
+  return Response.json({ ok: true, ...result }, { headers: { 'Cache-Control': 'no-store' } });
 }

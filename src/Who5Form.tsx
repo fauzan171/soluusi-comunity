@@ -15,8 +15,10 @@ const QUESTIONS = [
 const SCALE = ["Tidak pernah", "Hampir tidak pernah", "Kadang-kadang", "Cukup sering", "Sangat sering"];
 const STORE_KEY = "cw_pss10_answers";
 
+export type PssResult = { score: number; maxScore: number; label: string; color: "low" | "medium" | "high" };
+
 // Write-as-you-go: jawaban bertahan di localStorage (PRD P0-4)
-export default function Who5Form({ respondentId, onDone }: { respondentId: number; onDone: () => void }) {
+export default function Who5Form({ respondentId, onDone }: { respondentId: number; onDone: (r: PssResult) => void }) {
   const [answers, setAnswers] = useState<(number | null)[]>(() => {
     try {
       const saved = JSON.parse(localStorage.getItem(STORE_KEY) ?? "[]");
@@ -55,7 +57,7 @@ export default function Who5Form({ respondentId, onDone }: { respondentId: numbe
         return;
       }
       localStorage.removeItem(STORE_KEY);
-      onDone();
+      onDone(body as PssResult);
     } finally {
       setSubmitting(false);
     }
